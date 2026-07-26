@@ -72,7 +72,7 @@ A full-stack testimonial collection, moderation, and embeddable widget platform 
    Create a `.env` file inside the `client/` directory:
    ```env
    VITE_API_URL=http://localhost:3000/api
-   VITE_GEMINI_API_KEY=AQ.Ab8RN6LhcPXxVxSnFe1-PYcEqFq8zHHMai_fhim3XnT6M1ID-Q
+   VITE_GEMINI_API_KEY=your_gemini_api_key_here
    ```
    Start the Vite development server:
    ```bash

@@ -1,7 +1,7 @@
 // Dedicated AI Service for Testimonial Analysis using Gemini API
 // Simple, clean, robust logic without complex code or external heavy dependencies
 
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || 'AQ.Ab8RN6LhcPXxVxSnFe1-PYcEqFq8zHHMai_fhim3XnT6M1ID-Q';
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
 
 /**
  * Analyzes a testimonial text using Google Gemini AI model.
