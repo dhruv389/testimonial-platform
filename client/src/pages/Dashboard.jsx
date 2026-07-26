@@ -23,7 +23,6 @@ const Dashboard = () => {
       const items = Array.isArray(response.data) ? response.data : (response.data.testimonials || []);
       setTestimonials(items);
 
-      // Also update overall status counts
       if (filter === 'all') {
         const pCount = items.filter(t => t.status === 'pending').length;
         const aCount = items.filter(t => t.status === 'approved').length;
@@ -77,54 +76,53 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-radial-mesh pb-16">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8 max-w-4xl">
         
         {/* Dashboard Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 sm:mb-8 gap-4">
           <div>
             <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-purple-50 border border-purple-100 text-purple-700 text-xs font-bold uppercase tracking-wider mb-2">
               <span>🛡️</span>
               <span>Admin Moderation</span>
             </div>
-            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
               Testimonial Dashboard
             </h1>
-            <p className="text-slate-500 text-sm mt-1">
+            <p className="text-slate-500 text-xs sm:text-sm mt-1">
               Review, approve, or analyze incoming customer testimonials.
             </p>
           </div>
         </div>
 
         {/* Stats Grid Summary Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-8">
-          <div className="bg-white rounded-xl p-4 border border-slate-200/80 shadow-xs">
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total</p>
-            <p className="text-2xl font-extrabold text-slate-900 mt-1">{counts.all}</p>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4 mb-6 sm:mb-8">
+          <div className="bg-white rounded-xl p-3 sm:p-4 border border-slate-200/80 shadow-xs">
+            <p className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider">Total</p>
+            <p className="text-xl sm:text-2xl font-extrabold text-slate-900 mt-0.5 sm:mt-1">{counts.all}</p>
           </div>
-          <div className="bg-amber-50/60 rounded-xl p-4 border border-amber-200/80 shadow-xs">
-            <p className="text-xs font-bold text-amber-700 uppercase tracking-wider">Pending</p>
-            <p className="text-2xl font-extrabold text-amber-900 mt-1">{counts.pending}</p>
+          <div className="bg-amber-50/60 rounded-xl p-3 sm:p-4 border border-amber-200/80 shadow-xs">
+            <p className="text-[10px] sm:text-xs font-bold text-amber-700 uppercase tracking-wider">Pending</p>
+            <p className="text-xl sm:text-2xl font-extrabold text-amber-900 mt-0.5 sm:mt-1">{counts.pending}</p>
           </div>
-          <div className="bg-emerald-50/60 rounded-xl p-4 border border-emerald-200/80 shadow-xs">
-            <p className="text-xs font-bold text-emerald-700 uppercase tracking-wider">Approved</p>
-            <p className="text-2xl font-extrabold text-emerald-900 mt-1">{counts.approved}</p>
+          <div className="bg-emerald-50/60 rounded-xl p-3 sm:p-4 border border-emerald-200/80 shadow-xs">
+            <p className="text-[10px] sm:text-xs font-bold text-emerald-700 uppercase tracking-wider">Approved</p>
+            <p className="text-xl sm:text-2xl font-extrabold text-emerald-900 mt-0.5 sm:mt-1">{counts.approved}</p>
           </div>
-          <div className="bg-rose-50/60 rounded-xl p-4 border border-rose-200/80 shadow-xs">
-            <p className="text-xs font-bold text-rose-700 uppercase tracking-wider">Rejected</p>
-            <p className="text-2xl font-extrabold text-rose-900 mt-1">{counts.rejected}</p>
+          <div className="bg-rose-50/60 rounded-xl p-3 sm:p-4 border border-rose-200/80 shadow-xs">
+            <p className="text-[10px] sm:text-xs font-bold text-rose-700 uppercase tracking-wider">Rejected</p>
+            <p className="text-xl sm:text-2xl font-extrabold text-rose-900 mt-0.5 sm:mt-1">{counts.rejected}</p>
           </div>
         </div>
 
         {/* Main Card Wrapper */}
-        <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-200/80 p-6 sm:p-8">
+        <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-200/80 p-4 sm:p-6 md:p-8">
           
-          {/* Error State with Retry */}
           {error && (
-            <div className="bg-rose-50 border border-rose-200 text-rose-700 p-4 rounded-xl mb-6 flex items-center justify-between">
+            <div className="bg-rose-50 border border-rose-200 text-rose-700 p-3.5 rounded-xl mb-6 flex items-center justify-between text-xs sm:text-sm">
               <span>{error}</span>
               <button
                 onClick={fetchTestimonials}
-                className="px-3 py-1.5 bg-rose-600 text-white text-xs font-bold rounded-lg hover:bg-rose-700 transition"
+                className="px-3 py-1 bg-rose-600 text-white text-xs font-bold rounded-lg hover:bg-rose-700 transition"
               >
                 Retry
               </button>
@@ -132,10 +130,10 @@ const Dashboard = () => {
           )}
 
           {/* Filter Pill Tabs */}
-          <div className="flex flex-wrap gap-2 mb-6 border-b border-slate-100 pb-4">
+          <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-6 border-b border-slate-100 pb-4">
             <button
               onClick={() => setFilter('all')}
-              className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${
+              className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs font-bold rounded-xl transition-all ${
                 filter === 'all' 
                   ? 'bg-slate-900 text-white shadow-md' 
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -145,7 +143,7 @@ const Dashboard = () => {
             </button>
             <button
               onClick={() => setFilter('pending')}
-              className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${
+              className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs font-bold rounded-xl transition-all ${
                 filter === 'pending' 
                   ? 'bg-amber-500 text-white shadow-md shadow-amber-500/20' 
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -155,7 +153,7 @@ const Dashboard = () => {
             </button>
             <button
               onClick={() => setFilter('approved')}
-              className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${
+              className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs font-bold rounded-xl transition-all ${
                 filter === 'approved' 
                   ? 'bg-emerald-600 text-white shadow-md shadow-emerald-500/20' 
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -165,7 +163,7 @@ const Dashboard = () => {
             </button>
             <button
               onClick={() => setFilter('rejected')}
-              className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${
+              className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs font-bold rounded-xl transition-all ${
                 filter === 'rejected' 
                   ? 'bg-rose-600 text-white shadow-md shadow-rose-500/20' 
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -191,7 +189,7 @@ const Dashboard = () => {
           {/* Empty State */}
           {!loading && !error && testimonials.length === 0 && (
             <div className="text-center py-12 bg-slate-50 rounded-xl border border-dashed border-slate-300">
-              <p className="text-slate-500 font-medium text-sm">
+              <p className="text-slate-500 font-medium text-xs sm:text-sm">
                 No testimonials found for status: <span className="capitalize font-bold text-slate-800">{filter}</span>
               </p>
             </div>
