@@ -3,25 +3,53 @@ const Testimonial = require('../models/Testimonial');
 // Submit a new testimonial
 exports.submitTestimonial = async (req, res) => {
   try {
-    const { name, email, company, testimonial, rating } = req.body;
+    const { name, email, company, testimonial, rating, website, hp } = req.body;
     
-    // Basic validation
+    // 1. Anti-bot Honeypot check
+    if (website || hp) {
+      return res.status(400).json({ error: 'Junk submission detected.' });
+    }
+
+    // 2. Basic field validation
     if (!name || !email || !company || !testimonial || !rating) {
-      return res.status(400).json({ error: 'All fields are required' });
+      return res.status(400).json({ error: 'All fields are required.' });
+    }
+
+    // 3. Junk validation (minimum testimonial length & rating range)
+    const trimmedText = testimonial.trim();
+    if (trimmedText.length < 5) {
+      return res.status(400).json({ error: 'Testimonial text must be at least 5 characters long.' });
+    }
+
+    const numericRating = parseInt(rating);
+    if (isNaN(numericRating) || numericRating < 1 || numericRating > 5) {
+      return res.status(400).json({ error: 'Rating must be between 1 and 5.' });
+    }
+
+    // 4. Duplicate submission check (same email and exact testimonial text)
+    const normalizedEmail = email.trim().toLowerCase();
+    const existingDuplicate = await Testimonial.findOne({
+      email: normalizedEmail,
+      testimonial: trimmedText
+    });
+
+    if (existingDuplicate) {
+      return res.status(400).json({ 
+        error: 'Duplicate submission detected. You have already submitted this testimonial.' 
+      });
     }
 
     // Create testimonial
     const newTestimonial = new Testimonial({
-      name,
-      email,
-      company,
-      testimonial,
-      rating: parseInt(rating),
+      name: name.trim(),
+      email: normalizedEmail,
+      company: company.trim(),
+      testimonial: trimmedText,
+      rating: numericRating,
       status: 'pending'
     });
 
-    // Handle photo upload if provided (simplified - just storing base64 for demo)
-    // In production, you'd use cloud storage like Cloudinary
+    // Handle photo upload if provided (base64 or URL)
     if (req.body.photo) {
       newTestimonial.photo = req.body.photo;
     }
@@ -38,15 +66,38 @@ exports.submitTestimonial = async (req, res) => {
   }
 };
 
-// Get all testimonials (with optional status filter)
+// Get all testimonials (with optional status filter & pagination)
 exports.getTestimonials = async (req, res) => {
   try {
-    const { status } = req.query;
+    const { status, page, limit } = req.query;
     const filter = status ? { status } : {};
     
-    const testimonials = await Testimonial.find(filter)
-      .sort({ createdAt: -1 });
-    
+    if (page || limit) {
+      const pageNum = Math.max(1, parseInt(page) || 1);
+      const limitNum = Math.max(1, parseInt(limit) || 10);
+      const skip = (pageNum - 1) * limitNum;
+
+      const total = await Testimonial.countDocuments(filter);
+      const testimonials = await Testimonial.find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limitNum);
+
+      const totalPages = Math.ceil(total / limitNum);
+
+      return res.json({
+        testimonials,
+        pagination: {
+          total,
+          page: pageNum,
+          limit: limitNum,
+          totalPages,
+          hasMore: pageNum < totalPages
+        }
+      });
+    }
+
+    const testimonials = await Testimonial.find(filter).sort({ createdAt: -1 });
     res.json(testimonials);
   } catch (error) {
     console.error('Get testimonials error:', error);
@@ -54,12 +105,37 @@ exports.getTestimonials = async (req, res) => {
   }
 };
 
-// Get approved testimonials (for public wall)
+// Get approved testimonials (for public wall & widget, with pagination support)
 exports.getApprovedTestimonials = async (req, res) => {
   try {
-    const testimonials = await Testimonial.find({ status: 'approved' })
-      .sort({ createdAt: -1 });
-    
+    const { page, limit } = req.query;
+
+    if (page || limit) {
+      const pageNum = Math.max(1, parseInt(page) || 1);
+      const limitNum = Math.max(1, parseInt(limit) || 6);
+      const skip = (pageNum - 1) * limitNum;
+
+      const total = await Testimonial.countDocuments({ status: 'approved' });
+      const testimonials = await Testimonial.find({ status: 'approved' })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limitNum);
+
+      const totalPages = Math.ceil(total / limitNum);
+
+      return res.json({
+        testimonials,
+        pagination: {
+          total,
+          page: pageNum,
+          limit: limitNum,
+          totalPages,
+          hasMore: pageNum < totalPages
+        }
+      });
+    }
+
+    const testimonials = await Testimonial.find({ status: 'approved' }).sort({ createdAt: -1 });
     res.json(testimonials);
   } catch (error) {
     console.error('Get approved error:', error);

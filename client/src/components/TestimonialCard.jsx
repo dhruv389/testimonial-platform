@@ -1,8 +1,9 @@
 import RatingStars from './RatingStars';
+import AiInsightCard from './AiInsightCard';
 
 const TestimonialCard = ({ testimonial, showActions = false, onApprove, onReject, onDelete }) => {
   const { name, company, testimonial: text, rating, photo, status, createdAt } = testimonial;
-  
+
   const formatDate = (date) => {
     return new Date(date).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -11,64 +12,76 @@ const TestimonialCard = ({ testimonial, showActions = false, onApprove, onReject
     });
   };
 
-  const getStatusColor = (status) => {
+  const getStatusBadge = (status) => {
     switch(status) {
-      case 'approved': return 'bg-green-100 text-green-800';
-      case 'rejected': return 'bg-red-100 text-red-800';
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'approved': return 'bg-emerald-50 text-emerald-700 border border-emerald-200';
+      case 'rejected': return 'bg-rose-50 text-rose-700 border border-rose-200';
+      case 'pending': return 'bg-amber-50 text-amber-700 border border-amber-200';
+      default: return 'bg-slate-100 text-slate-700 border border-slate-200';
     }
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 mb-4">
+    <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all duration-200 p-6 mb-4 relative overflow-hidden group">
+      {/* Decorative accent top line */}
+      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
       <div className="flex items-start justify-between">
-        <div className="flex items-center">
+        <div className="flex items-center space-x-3.5">
           {photo ? (
             <img 
               src={photo} 
               alt={name} 
-              className="w-12 h-12 rounded-full object-cover mr-4"
+              className="w-12 h-12 rounded-full object-cover ring-2 ring-indigo-500/20 shadow-sm"
             />
           ) : (
-            <div className="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center mr-4">
-              <span className="text-gray-600 text-xl font-bold">
-                {name.charAt(0).toUpperCase()}
-              </span>
+            <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-indigo-500 via-indigo-600 to-purple-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">
+              {name ? name.charAt(0).toUpperCase() : 'U'}
             </div>
           )}
           <div>
-            <h3 className="font-semibold text-lg">{name}</h3>
-            <p className="text-gray-600 text-sm">{company}</p>
+            <h3 className="font-bold text-slate-900 text-base leading-tight">{name}</h3>
+            <p className="text-slate-500 text-xs font-medium mt-0.5">{company}</p>
           </div>
         </div>
         
         {status && (
-          <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(status)}`}>
-            {status.charAt(0).toUpperCase() + status.slice(1)}
+          <span className={`px-3 py-1 rounded-full text-xs font-bold capitalize ${getStatusBadge(status)}`}>
+            {status}
           </span>
         )}
       </div>
 
-      <RatingStars rating={rating} interactive={false} />
+      <div className="mt-3.5">
+        <RatingStars rating={rating} interactive={false} />
+      </div>
       
-      <p className="mt-3 text-gray-700">{text}</p>
+      {/* Testimonial Quote */}
+      <div className="relative mt-3">
+        <p className="text-slate-700 text-sm leading-relaxed font-normal">
+          "{text}"
+        </p>
+      </div>
       
-      <div className="mt-2 text-sm text-gray-500">
-        {formatDate(createdAt)}
+      <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-xs text-slate-400 font-medium">
+        <span>Submitted {formatDate(createdAt)}</span>
       </div>
 
+      {/* Modular AI Insights Component */}
+      <AiInsightCard text={text} />
+
+      {/* Moderation Actions */}
       {showActions && status === 'pending' && (
-        <div className="mt-4 flex space-x-2">
+        <div className="mt-4 flex space-x-2 border-t border-slate-100 pt-3">
           <button
             onClick={() => onApprove && onApprove(testimonial._id)}
-            className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition"
+            className="flex-1 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs transition"
           >
             Approve
           </button>
           <button
             onClick={() => onReject && onReject(testimonial._id)}
-            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition"
+            className="flex-1 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-xs transition"
           >
             Reject
           </button>
@@ -76,12 +89,14 @@ const TestimonialCard = ({ testimonial, showActions = false, onApprove, onReject
       )}
 
       {showActions && onDelete && (
-        <button
-          onClick={() => onDelete(testimonial._id)}
-          className="mt-2 text-red-500 hover:text-red-700 text-sm"
-        >
-          Delete
-        </button>
+        <div className="mt-2 text-right">
+          <button
+            onClick={() => onDelete(testimonial._id)}
+            className="text-rose-500 hover:text-rose-700 text-xs font-semibold transition underline"
+          >
+            Delete Testimonial
+          </button>
+        </div>
       )}
     </div>
   );

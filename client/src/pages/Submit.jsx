@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { testimonialApi } from '../services/api';
 import RatingStars from '../components/RatingStars';
 
-const CLOUDINARY_CLOUD_NAME = 'dyugrhvaq';
-const CLOUDINARY_UPLOAD_PRESET = 'Dhavalfirst_image-folder';
+const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'dyugrhvaq';
+const CLOUDINARY_UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'Dhavalfirst_image-folder';
 
 const uploadToCloudinary = async (file) => {
   const formData = new FormData();
@@ -32,8 +32,8 @@ const Submit = () => {
     company: '',
     testimonial: '',
     rating: 5,
+    website: '', // Honeypot field (hidden from real users)
   });
-  // Store the raw File object separately
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -53,7 +53,6 @@ const Submit = () => {
     const file = e.target.files[0];
     if (file) {
       setPhotoFile(file);
-      // Only for local preview
       const reader = new FileReader();
       reader.onloadend = () => setPhotoPreview(reader.result);
       reader.readAsDataURL(file);
@@ -69,29 +68,32 @@ const Submit = () => {
     try {
       let photoUrl = null;
 
-      // Upload to Cloudinary first if a photo was selected
       if (photoFile) {
-        photoUrl = await uploadToCloudinary(photoFile);
+        try {
+          photoUrl = await uploadToCloudinary(photoFile);
+        } catch (uploadErr) {
+          console.warn('Cloudinary upload failed, submitting without photo:', uploadErr);
+        }
       }
 
-      // Send form data + Cloudinary URL to backend
       await testimonialApi.submit({ ...formData, photo: photoUrl });
 
-      setSuccess('Testimonial submitted successfully!');
+      setSuccess('Testimonial submitted successfully! It will appear on the wall once approved by our team.');
       setFormData({
         name: '',
         email: '',
         company: '',
         testimonial: '',
         rating: 5,
+        website: '',
       });
       setPhotoFile(null);
       setPhotoPreview(null);
 
-      // Navigate to wall after 2 seconds
       setTimeout(() => navigate('/wall'), 2000);
     } catch (err) {
-      setError('Failed to submit testimonial. Please try again.');
+      const serverMessage = err.response?.data?.error || 'Failed to submit testimonial. Please try again.';
+      setError(serverMessage);
       console.error(err);
     } finally {
       setLoading(false);
@@ -99,120 +101,167 @@ const Submit = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-2xl">
-      <div className="bg-white rounded-lg shadow-md p-6 md:p-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-6">Submit Your Testimonial</h1>
+    <div className="min-h-screen bg-radial-mesh py-10 pb-16">
+      <div className="container mx-auto px-4 max-w-2xl">
         
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            {error}
+        {/* Header Title */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-bold uppercase tracking-wider mb-2">
+            <span>✍️</span>
+            <span>Customer Feedback</span>
           </div>
-        )}
-        
-        {success && (
-          <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-            {success}
-          </div>
-        )}
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+            Share Your Experience
+          </h1>
+          <p className="text-slate-500 text-sm mt-2 max-w-md mx-auto">
+            We value your honest review! Fill out the short form below to leave your testimonial.
+          </p>
+        </div>
 
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="name">
-              Name *
-            </label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            />
-          </div>
+        {/* Form Container Card */}
+        <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-200/80 p-6 md:p-8">
+          
+          {error && (
+            <div className="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-xl mb-6 text-sm flex items-center gap-2">
+              <span>⚠️</span>
+              <span>{error}</span>
+            </div>
+          )}
+          
+          {success && (
+            <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-xl mb-6 text-sm flex items-center gap-2">
+              <span>🎉</span>
+              <span>{success}</span>
+            </div>
+          )}
 
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
-              Email *
-            </label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            />
-          </div>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Honeypot field */}
+            <div style={{ display: 'none' }} aria-hidden="true">
+              <input
+                type="text"
+                name="website"
+                value={formData.website}
+                onChange={handleInputChange}
+                tabIndex={-1}
+                autoComplete="off"
+              />
+            </div>
 
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="company">
-              Company *
-            </label>
-            <input
-              type="text"
-              id="company"
-              name="company"
-              value={formData.company}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            />
-          </div>
-
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="testimonial">
-              Testimonial *
-            </label>
-            <textarea
-              id="testimonial"
-              name="testimonial"
-              value={formData.testimonial}
-              onChange={handleInputChange}
-              rows="4"
-              className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            />
-          </div>
-
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">
-              Rating *
-            </label>
-            <RatingStars 
-              rating={formData.rating} 
-              interactive={true}
-              onRatingChange={handleRatingChange}
-            />
-          </div>
-
-          <div className="mb-6">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="photo">
-              Photo (optional)
-            </label>
-            <input
-              type="file"
-              id="photo"
-              accept="image/*"
-              onChange={handlePhotoChange}
-              className="w-full"
-            />
-            {photoPreview && (
-              <div className="mt-2">
-                <img src={photoPreview} alt="Preview" className="w-20 h-20 rounded-full object-cover" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-slate-700 text-xs font-bold uppercase tracking-wider mb-2" htmlFor="name">
+                  Full Name *
+                </label>
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  placeholder="e.g. Sarah Jenkins"
+                  className="w-full px-4 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-sm transition"
+                  required
+                />
               </div>
-            )}
-          </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded hover:bg-blue-700 transition disabled:opacity-50"
-          >
-            {loading ? 'Submitting...' : 'Submit Testimonial'}
-          </button>
-        </form>
+              <div>
+                <label className="block text-slate-700 text-xs font-bold uppercase tracking-wider mb-2" htmlFor="email">
+                  Email Address *
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  placeholder="e.g. sarah@company.com"
+                  className="w-full px-4 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-sm transition"
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-slate-700 text-xs font-bold uppercase tracking-wider mb-2" htmlFor="company">
+                Company / Organization *
+              </label>
+              <input
+                type="text"
+                id="company"
+                name="company"
+                value={formData.company}
+                onChange={handleInputChange}
+                placeholder="e.g. Acme Tech Solutions"
+                className="w-full px-4 py-2.5 bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-sm transition"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-slate-700 text-xs font-bold uppercase tracking-wider mb-2" htmlFor="testimonial">
+                Your Testimonial *
+              </label>
+              <textarea
+                id="testimonial"
+                name="testimonial"
+                value={formData.testimonial}
+                onChange={handleInputChange}
+                rows="4"
+                placeholder="What did you love most about using our product?"
+                className="w-full px-4 py-3 bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-sm transition leading-relaxed"
+                required
+              />
+            </div>
+
+            <div className="bg-slate-50/80 p-4 rounded-xl border border-slate-200/80 flex items-center justify-between">
+              <div>
+                <label className="block text-slate-800 text-xs font-bold uppercase tracking-wider">
+                  Overall Rating *
+                </label>
+                <p className="text-xs text-slate-500 mt-0.5">Click stars to rate your experience</p>
+              </div>
+              <RatingStars 
+                rating={formData.rating} 
+                interactive={true}
+                onRatingChange={handleRatingChange}
+              />
+            </div>
+
+            <div>
+              <label className="block text-slate-700 text-xs font-bold uppercase tracking-wider mb-2" htmlFor="photo">
+                Profile Photo (Optional)
+              </label>
+              <div className="flex items-center space-x-4">
+                <input
+                  type="file"
+                  id="photo"
+                  accept="image/*"
+                  onChange={handlePhotoChange}
+                  className="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 transition cursor-pointer"
+                />
+                {photoPreview && (
+                  <img src={photoPreview} alt="Preview" className="w-12 h-12 rounded-full object-cover border-2 border-indigo-500 shadow-sm" />
+                )}
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-3.5 px-6 rounded-xl shadow-lg shadow-indigo-500/25 transition duration-200 disabled:opacity-50 text-sm flex items-center justify-center space-x-2"
+            >
+              {loading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Submitting...</span>
+                </>
+              ) : (
+                <span>Submit Testimonial ✨</span>
+              )}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );

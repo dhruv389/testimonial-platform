@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -9,22 +9,36 @@ const api = axios.create({
   },
 });
 
-// Testimonial API functions
+export function submitTestimonial(formData) {
+  return api.post('/testimonials/submit', formData);
+}
+
+export function getAllTestimonials(status, page, limit) {
+  return api.get('/testimonials', {
+    params: { status, page, limit }
+  });
+}
+
+export function getApprovedTestimonials(page, limit) {
+  return api.get('/testimonials/approved', {
+    params: { page, limit }
+  });
+}
+
+export function updateTestimonialStatus(id, status) {
+  return api.patch(`/testimonials/${id}/status`, { status });
+}
+
+export function deleteTestimonial(id) {
+  return api.delete(`/testimonials/${id}`);
+}
+
 export const testimonialApi = {
-  // Submit a new testimonial
-  submit: (data) => api.post('/testimonials/submit', data),
-  
-  // Get all testimonials (with optional status filter)
-  getAll: (status) => api.get('/testimonials', { params: { status } }),
-  
-  // Get approved testimonials (public)
-  getApproved: () => api.get('/testimonials/approved'),
-  
-  // Update testimonial status
-  updateStatus: (id, status) => api.patch(`/testimonials/${id}/status`, { status }),
-  
-  // Delete testimonial
-  delete: (id) => api.delete(`/testimonials/${id}`),
+  submit: submitTestimonial,
+  getAll: getAllTestimonials,
+  getApproved: getApprovedTestimonials,
+  updateStatus: updateTestimonialStatus,
+  delete: deleteTestimonial,
 };
 
 export default api;
